@@ -1,0 +1,5 @@
+obj/
+bin/
+
+SO.Web/appsettings.json
+SO.Web/appsettings.Production.json
