@@ -7,14 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.14"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\SO.Core\SO.Core.csproj" />
       <ProjectReference Include="..\SO.Data\SO.Data.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\SearchComparison\Index.cshtml" />
     </ItemGroup>
 
 </Project>

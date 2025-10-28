@@ -1,0 +1,130 @@
+﻿@model SO.Web.Controllers.SearchComparisonController.SearchComparisonViewModel
+@{
+    ViewData["Title"] = "Search Comparison";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .chart-container {
+            width: 50%;
+            margin: 20px auto;
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .note {
+            color: #555;
+            font-style: italic;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>Search Comparison</h1>
+
+<p>Total Users in Database: <strong>@Model.TotalUsers</strong></p>
+
+<form asp-controller="SearchComparison" asp-action="CachedSearch" method="post">
+    <label for="query">Search Query:</label>
+    <input type="text" name="query" value="@Model?.Query" placeholder="Ganesh Kaski PHP" />
+    <button type="submit">Search</button>
+    <p class="note">Tip: Press the search button a second time to see faster results because they are cached.</p>
+</form>
+
+@if (!string.IsNullOrEmpty(Model?.Query))
+{
+    <h2>Results for Query: @Model.Query</h2>
+    <p>Cached Search Time: @Model.CachedTime ms</p>
+
+    <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>College</th>
+            <th>University</th>
+            <th>Tech Stack</th>
+            <th>Program</th>
+            <th>Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var user in Model.CachedData)
+        {
+            <tr>
+                <td>@user.FirstName</td>
+                <td>@user.LastName</td>
+                <td>@user.College</td>
+                <td>@user.University</td>
+                <td>@user.TechStack</td>
+                <td>@user.Program</td>
+                <td>@user.Address</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    
+
+    <script>
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Cached Search'],
+                datasets: [
+                    {
+                        label: 'Time (ms)',
+                        data: [@Model.CachedTime],
+                        backgroundColor: '#FF6384'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cached Search Performance'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (ms)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
+</body>
+</html>
