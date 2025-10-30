@@ -5,6 +5,7 @@ using SO.Data;
 using System.Diagnostics;
 using System.Text.Json;
 using SO.Core;
+using SO.Web.Services;
 
 namespace SO.Web.Controllers;
 
@@ -15,12 +16,14 @@ public class SearchApiController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IMemoryCache _memoryCache;
     private readonly IDistributedCache _redisCache;
+    private readonly UserSearchService _searchService;
 
-    public SearchApiController(AppDbContext dbContext, IMemoryCache memoryCache, IDistributedCache redisCache)
+    public SearchApiController(AppDbContext dbContext, IMemoryCache memoryCache, IDistributedCache redisCache,UserSearchService userSearchService)
     {
         _context = dbContext;
         _memoryCache = memoryCache;
         _redisCache = redisCache;
+        _searchService = userSearchService;
     }
 
     [HttpGet("normal-search")]
@@ -45,10 +48,8 @@ public class SearchApiController : ControllerBase
         var stopwatch = Stopwatch.StartNew();
         string cacheKey = "user_1";
 
-        // 🧠 Try MemoryCache first
         if (!_memoryCache.TryGetValue(cacheKey, out UserEntity? user))
         {
-            // 🧠 Try Redis next
             var redisData = await _redisCache.GetStringAsync(cacheKey);
             if (redisData != null)
             {
@@ -57,12 +58,10 @@ public class SearchApiController : ControllerBase
             }
             else
             {
-                // ⛏️ Finally get from database
                 user = _context.Users.FirstOrDefault(u => u.Id == 1);
 
                 if (user != null)
                 {
-                    // Save in Redis (long-term)
                     await _redisCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(user), new DistributedCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
@@ -81,5 +80,12 @@ public class SearchApiController : ControllerBase
             TimeTakenMs = stopwatch.ElapsedMilliseconds,
             Data = user
         });
+    }
+
+    [HttpGet("search")]
+    public IActionResult Search([FromQuery] string q)
+    {
+        var results = _searchService.SearchUsers(q);
+        return Ok(results);
     }
 }
