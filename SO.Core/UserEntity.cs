@@ -1,8 +1,10 @@
-﻿namespace SO.Core;
+﻿
+namespace SO.Core;
+
 
 public class UserEntity
 {
-    protected UserEntity()
+    public UserEntity()
     {
         
     }
@@ -15,4 +17,6 @@ public class UserEntity
     public string TechStack { get; set; }
     public string Program { get; set; }
     public string Address { get; set; }
+    
+    public string[] Suggest { get; set; } = Array.Empty<string>();
 }

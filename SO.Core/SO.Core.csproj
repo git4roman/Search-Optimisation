@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.15.0" />
+    </ItemGroup>
+
 </Project>

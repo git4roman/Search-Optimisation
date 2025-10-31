@@ -4,9 +4,11 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.15.0" />
       <PackageReference Include="FuzzySharp" Version="2.0.2" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
@@ -19,6 +21,12 @@
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Views\SearchComparison\Index.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

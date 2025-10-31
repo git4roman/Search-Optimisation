@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Caching.Distributed;
-using SO.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using SO.Core;
+using SO.Data;
 using SO.Web.Services;
-
-namespace SO.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -17,23 +16,25 @@ public class SearchApiController : ControllerBase
     private readonly IMemoryCache _memoryCache;
     private readonly IDistributedCache _redisCache;
     private readonly UserSearchService _searchService;
+    private readonly ElasticUserSearchService _elasticUserSearchService;
 
-    public SearchApiController(AppDbContext dbContext, IMemoryCache memoryCache, IDistributedCache redisCache,UserSearchService userSearchService)
+    public SearchApiController(AppDbContext dbContext, IMemoryCache memoryCache, IDistributedCache redisCache,
+        UserSearchService userSearchService, ElasticUserSearchService elasticUserSearchService)
     {
         _context = dbContext;
         _memoryCache = memoryCache;
         _redisCache = redisCache;
         _searchService = userSearchService;
+        _elasticUserSearchService = elasticUserSearchService;
     }
 
     [HttpGet("normal-search")]
     public IActionResult NormalSearch()
     {
         var stopwatch = Stopwatch.StartNew();
-
         var user = _context.Users.FirstOrDefault(u => u.Id == 1);
-
         stopwatch.Stop();
+
         return Ok(new
         {
             Source = "Database",
@@ -54,12 +55,11 @@ public class SearchApiController : ControllerBase
             if (redisData != null)
             {
                 user = JsonSerializer.Deserialize<UserEntity>(redisData);
-                _memoryCache.Set(cacheKey, user, TimeSpan.FromMinutes(5)); // short-term memory cache
+                _memoryCache.Set(cacheKey, user, TimeSpan.FromMinutes(5));
             }
             else
             {
-                user = _context.Users.FirstOrDefault(u => u.Id == 1);
-
+                user = await _context.Users.FirstOrDefaultAsync(u => u.Id == 1);
                 if (user != null)
                 {
                     await _redisCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(user), new DistributedCacheEntryOptions
@@ -67,7 +67,6 @@ public class SearchApiController : ControllerBase
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
                     });
 
-                    // Also save in MemoryCache
                     _memoryCache.Set(cacheKey, user, TimeSpan.FromMinutes(5));
                 }
             }
@@ -83,9 +82,9 @@ public class SearchApiController : ControllerBase
     }
 
     [HttpGet("search")]
-    public IActionResult Search([FromQuery] string q)
+    public async Task<IActionResult> Search([FromQuery] string q)
     {
-        var results = _searchService.SearchUsers(q);
+        var results = await _elasticUserSearchService.SearchUsersAsync(q);
         return Ok(results);
     }
 }
